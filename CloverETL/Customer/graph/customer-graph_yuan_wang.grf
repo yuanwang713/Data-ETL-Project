@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Graph author="wyame" created="Wed Aug 24 19:45:18 EDT 2016" guiVersion="4.3.0.M2" id="1472082493568" licenseCode="CLP1DNYUXX46940671EX" name="customer-graph" showComponentDetails="true">
+<Global>
+<Metadata id="Metadata3" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="CIDjoin" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="CID" type="string"/>
+<Field length="12" name="UnitPrice" scale="2" trim="true" type="decimal"/>
+<Field length="12" name="Quantity" scale="2" trim="true" type="integer"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata6" previewAttachment="${DATAIN_DIR}/customers.csv" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" label="customers.csv" name="customers_csv" previewAttachment="${DATAIN_DIR}/customers.csv" previewAttachmentCharset="ISO-8859-1" quoteChar="both" quotedStrings="false" recordDelimiter="\r\n" skipSourceRows="1" type="delimited">
+<Field name="CustomerID" type="string"/>
+<Field name="CompanyName" type="string"/>
+<Field name="ContactName" type="string"/>
+<Field name="ContactTitle" type="string"/>
+<Field name="Address" type="string"/>
+<Field name="City" type="string"/>
+<Field name="Region" type="string"/>
+<Field name="PostalCode" type="string"/>
+<Field name="Country" type="string"/>
+<Field name="Phone" type="string"/>
+<Field eofAsDelimiter="true" name="Fax" type="string"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata5" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" name="Order_Summary" previewAttachmentCharset="ISO-8859-1" recordDelimiter="\r\n" type="delimited">
+<Field name="Company" type="string"/>
+<Field name="TotalSales" type="decimal"/>
+<Field name="AverageSalesValue" type="decimal"/>
+<Field name="UnitSales" type="integer"/>
+<Field name="TempValue" type="decimal"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata4" previewAttachment="${DATAIN_DIR}/orderdetails.csv" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter="|" label="orderdetails.csv" name="orderdetails_csv" previewAttachment="${DATAIN_DIR}/orderdetails.csv" previewAttachmentCharset="ISO-8859-1" quoteChar="both" quotedStrings="false" recordDelimiter="\n" skipSourceRows="1" type="delimited">
+<Field name="OrderID" type="integer"/>
+<Field name="ProductID" type="integer"/>
+<Field name="UnitPrice" scale="1" type="decimal"/>
+<Field name="Quantity" type="integer"/>
+<Field eofAsDelimiter="true" name="Discount" scale="2" type="decimal"/>
+</Record>
+</Metadata>
+<Metadata id="Metadata0" previewAttachment="${DATAIN_DIR}/orders.csv" previewAttachmentCharset="ISO-8859-1">
+<Record fieldDelimiter=";" label="orders.csv" name="orders_csv" previewAttachment="${DATAIN_DIR}/orders.csv" previewAttachmentCharset="ISO-8859-1" quoteChar="both" quotedStrings="false" recordDelimiter="\n" skipSourceRows="1" type="delimited">
+<Field name="OrderID" type="integer"/>
+<Field name="CustomerID" type="string"/>
+<Field name="OrderDate" type="string"/>
+<Field eofAsDelimiter="true" name="OrderValue" scale="2" type="decimal"/>
+</Record>
+</Metadata>
+<GraphParameters>
+<GraphParameterFile fileURL="workspace.prm"/>
+</GraphParameters>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="137" id="Note0" textColor="444444" width="879" x="43" y="-106">
+<attr name="text"><![CDATA[h3. Project: Create ETL graph for disparate CSV file
+There are three csv files about order and customer data of various company. I have joined three tables to create sales summary, aggregated by company, sorted by sales and write the output to excel file.
+
+]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="C1E6FF" folded="false" fontSize="medium" height="288" id="Note1" textColor="444444" width="269" x="294" y="30">
+<attr name="text"><![CDATA[h3. First Join
+
+
+
+
+Join Orders and Order Detail to add customerid column and transform data format.
+]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="DEF4AB" folded="false" fontSize="medium" height="294" id="Note2" textColor="444444" width="272" x="555" y="30">
+<attr name="text"><![CDATA[h3. Second Join
+
+
+
+
+Add company name to joined table and multiply unitprice and quantity to get tempvalue.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="FAF6D6" folded="false" fontSize="medium" height="203" id="Note3" textColor="444444" width="333" x="294" y="316">
+<attr name="text"><![CDATA[h3. Aggregate
+
+Apply aggregate function like avg(), sum(), count() to Tempvalue to calculate TotalSales, AvgSales and UnitSales.]]></attr>
+</RichTextNote>
+<RichTextNote backgroundColor="ECF0F0" folded="false" fontSize="medium" height="137" id="Note4" textColor="444444" width="314" x="826" y="30">
+<attr name="text"><![CDATA[h3. Output
+
+Export order_summary.xlsx file  to data-out file. ]]></attr>
+</RichTextNote>
+<Dictionary/>
+</Global>
+<Phase number="0">
+<Node guiName="Add company name" guiX="575" guiY="90" id="ADD_COMPANY_NAME" joinKey="$CID=$CustomerID" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.Company = $in.1.CompanyName;
+	$out.0.TempValue = $in.0.UnitPrice*$in.0.Quantity;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node guiName="Add Cumtomer ID" guiX="316" guiY="92" id="ADD_CUMTOMER_ID" joinKey="$OrderID=$OrderID" slaveDuplicates="true" type="EXT_HASH_JOIN">
+<attr name="transform"><![CDATA[//#CTL2
+
+// Transforms input record into output record.
+function integer transform() {
+	$out.0.CID = $in.0.CustomerID;
+	$out.0.UnitPrice = $in.1.UnitPrice;
+	$out.0.Quantity = $in.1.Quantity;
+
+	return ALL;
+}
+
+// Called during component initialization.
+// function boolean init() {}
+
+// Called during each graph run before the transform is executed. May be used to allocate and initialize resources
+// required by the transform. All resources allocated within this method should be released
+// by the postExecute() method.
+// function void preExecute() {}
+
+// Called only if transform() throws an exception.
+// function integer transformOnError(string errorMessage, string stackTrace) {}
+
+// Called during each graph run after the entire transform was executed. Should be used to free any resources
+// allocated within the preExecute() method.
+// function void postExecute() {}
+
+// Called to return a user-defined error message when an error occurs.
+// function string getMessage() {}
+]]></attr>
+</Node>
+<Node aggregateKey="Company" guiName="Aggregate" guiX="626" guiY="338" id="AGGREGATE" mapping="$Company:=$Company;$TotalSales:=sum($TempValue);$AverageSalesValue:=avg($TempValue);$UnitSales:=count();" sorted="false" type="AGGREGATE"/>
+<Node existingSheetsActions="DO_NOTHING" fileURL="${DATAOUT_DIR}/order_summary.xlsx" guiName="Company Order Summary" guiX="849" guiY="166" id="COMPANY_ORDER_SUMMARY" type="SPREADSHEET_WRITER" writeMode="OVERWRITE_SHEET_IN_MEMORY"/>
+<Node fileURL="${DATAIN_DIR}/customers.csv" guiName="Customers" guiX="98" guiY="358" id="CUSTOMERS" type="DATA_READER"/>
+<Node fileURL="${DATAIN_DIR}/orders.csv" guiName="Orders" guiX="98" guiY="48" id="ORDERS" type="DATA_READER"/>
+<Node fileURL="${DATAIN_DIR}/orderdetails.csv" guiName="Order Detail" guiX="98" guiY="205" id="ORDER_DETAIL" type="DATA_READER"/>
+<Node guiName="Sort by Sales" guiX="895" guiY="338" id="SORT_BY_SALES" sortKey="TotalSales(d);Company(a)" type="EXT_SORT"/>
+<Edge debugMode="true" fromNode="ADD_COMPANY_NAME:0" guiBendpoints="" guiRouter="Manhattan" id="Edge12" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="AGGREGATE:0"/>
+<Edge debugMode="true" fromNode="ADD_CUMTOMER_ID:0" guiBendpoints="" guiRouter="Manhattan" id="Edge10" inPort="Port 0 (driver)" metadata="Metadata3" outPort="Port 0 (out)" toNode="ADD_COMPANY_NAME:0"/>
+<Edge debugMode="true" fromNode="AGGREGATE:0" guiBendpoints="" guiRouter="Manhattan" id="Edge13" inPort="Port 0 (in)" metadata="Metadata5" outPort="Port 0 (out)" toNode="SORT_BY_SALES:0"/>
+<Edge debugMode="true" fromNode="CUSTOMERS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge11" inPort="Port 1 (slave)" metadata="Metadata6" outPort="Port 0 (output)" toNode="ADD_COMPANY_NAME:1"/>
+<Edge debugMode="true" fromNode="ORDERS:0" guiBendpoints="" guiRouter="Manhattan" id="Edge5" inPort="Port 0 (driver)" metadata="Metadata0" outPort="Port 0 (output)" toNode="ADD_CUMTOMER_ID:0"/>
+<Edge debugMode="true" fromNode="ORDER_DETAIL:0" guiBendpoints="" guiRouter="Manhattan" id="Edge6" inPort="Port 1 (slave)" metadata="Metadata4" outPort="Port 0 (output)" toNode="ADD_CUMTOMER_ID:1"/>
+<Edge fromNode="SORT_BY_SALES:0" guiBendpoints="" guiRouter="Manhattan" id="Edge15" inPort="Port 0 (input)" metadata="Metadata5" outPort="Port 0 (out)" toNode="COMPANY_ORDER_SUMMARY:0"/>
+</Phase>
+</Graph>
