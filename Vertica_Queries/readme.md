@@ -5,4 +5,4 @@ I have installed vmtool in vmware to set up share folder and installed Vertica t
 
 Admintools and vsql are used to maintain databases on Vertica. 
 
-Screenshots of T-SQL queries and output have been included in the pdf file.
+Screenshots of T-SQL queries and output have been included in the Vertica7.2_Vmart_T-SQL_Queries_Yuan_Wang.pdf.
